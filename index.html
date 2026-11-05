@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sal del Automático</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;600;800&family=Source+Serif+4:wght@400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#6b6b6b; --paper:#faf8f3; --ink:#3d3d3d; --soft:#5b5b5b; --mute:#8a8a85;
+  --yellow:#ffd500; --tape:#ffe46b; --note:#f4ecc9; --line:#cfcabe; --binder:#dcdcd6;
+  --hand:'Caveat',cursive; --mono:'IBM Plex Mono',monospace; --sans:'Inter',system-ui,sans-serif; --serif:'Source Serif 4',Georgia,serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+
+/* progress bar */
+.top{position:sticky;top:0;z-index:20;background:#4f4f4f;color:#fff;display:flex;align-items:center;gap:14px;padding:10px 16px;font-family:var(--mono);font-size:12px}
+.top .bar{flex:1;height:8px;background:#777;border-radius:8px;overflow:hidden}
+.top .bar i{display:block;height:100%;width:0;background:var(--yellow);transition:width .5s}
+.top .dl{color:#fff;text-decoration:none;border:1px solid var(--yellow);padding:5px 10px;border-radius:4px}
+.duo img{aspect-ratio:3/4;object-fit:cover;object-position:top}
+.top button{font:inherit;background:var(--yellow);border:0;padding:6px 10px;border-radius:4px;cursor:pointer;color:#222}
+
+.book{max-width:760px;margin:24px auto 60px;padding:0 16px;display:flex;flex-direction:column;gap:28px}
+.page{position:relative;background:var(--paper);border-radius:6px;padding:48px 48px 64px 76px;box-shadow:0 0 0 10px var(--binder),0 12px 30px rgba(0,0,0,.35);overflow:hidden}
+.page::before{content:"";position:absolute;left:18px;top:24px;bottom:24px;width:10px;
+  background:radial-gradient(circle,#777 0 4px,transparent 5px) 0 0/10px 64px repeat-y}
+.page::after{content:"";position:absolute;left:40px;top:0;bottom:0;border-left:1px solid #e3e0d7}
+.head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:26px}
+.head img{height:44px}
+.head .tag{font-family:var(--mono);font-size:11px;color:var(--soft);line-height:2}
+.foot{position:absolute;left:76px;right:48px;bottom:20px;border-top:1px solid var(--line);padding-top:10px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--soft);letter-spacing:.04em}
+
+.label{display:inline-block;background:var(--yellow);font-family:var(--mono);font-size:12px;letter-spacing:.06em;padding:6px 14px;transform:rotate(-.6deg);margin-bottom:22px}
+h1,h2{font-family:var(--sans);font-weight:800;color:var(--ink);margin:0;line-height:1.08}
+h1{font-size:clamp(40px,8vw,64px);letter-spacing:.01em}
+h1 .hl{background:var(--yellow);padding:0 10px;display:inline-block}
+h2{font-size:clamp(30px,5.5vw,40px)}
+.hand{font-family:var(--hand);font-size:clamp(26px,4.5vw,36px);color:var(--ink);font-weight:500}
+.serif{font-family:var(--serif);font-size:18px;color:var(--soft)}
+p{line-height:1.55;color:var(--soft);font-size:16px}
+.meta{background:var(--yellow);font-family:var(--mono);font-size:12px;padding:8px 12px;margin:16px 0 22px;letter-spacing:.04em}
+
+/* polaroid */
+.polaroid{background:#fff;padding:10px 10px 38px;box-shadow:0 6px 16px rgba(0,0,0,.22);position:relative;transform:rotate(var(--r,2deg));transition:transform .35s}
+.polaroid:hover{transform:rotate(0) scale(1.02)}
+.polaroid img{display:block;width:100%;height:auto}
+.polaroid figcaption{position:absolute;left:12px;bottom:6px;font-family:var(--hand);font-size:20px;transform:rotate(-2deg)}
+.polaroid::before{content:"";position:absolute;top:-12px;left:50%;width:90px;height:24px;margin-left:-45px;background:var(--tape);opacity:.85;transform:rotate(-3deg)}
+.float{float:right;width:min(42%,260px);margin:-6px 0 18px 22px}
+
+/* fields */
+.field{border:1.5px dashed var(--line);border-radius:6px;padding:12px 14px;margin:14px 0;background:rgba(255,255,255,.5)}
+.field label{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:var(--soft);margin-bottom:4px}
+.field input,.field textarea{width:100%;border:0;background:repeating-linear-gradient(transparent 0 31px,#d9d4c8 31px 32px);font-family:var(--hand);font-size:24px;color:#2a2a2a;outline:none;resize:vertical;line-height:32px;min-height:34px;padding:0}
+.field textarea{min-height:66px}
+.field:focus-within{border-color:#c9b100;background:#fffdf0}
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}
+.grid .field{margin:0}
+
+ol.steps{list-style:none;padding:0;margin:20px 0;counter-reset:s}
+ol.steps li{counter-increment:s;display:flex;gap:14px;margin:14px 0;line-height:1.5;color:var(--soft);cursor:pointer;transition:opacity .3s}
+ol.steps li::before{content:counter(s);flex:none;width:24px;height:24px;border-radius:50%;background:var(--yellow);font-size:12px;font-weight:700;display:grid;place-items:center;color:#333;margin-top:1px}
+ol.steps li.done{opacity:.45;text-decoration:line-through}
+ol.steps li.done::before{content:"✓"}
+
+.note{background:var(--note);padding:18px 18px 16px;position:relative;margin:22px 0;border-radius:3px}
+.note::before{content:"";position:absolute;top:-10px;left:14px;width:60px;height:18px;background:var(--tape);transform:rotate(-4deg)}
+.note b{display:block;font-family:var(--mono);font-weight:500;font-size:11px;letter-spacing:.06em;margin-bottom:6px}
+.note p{margin:0;font-size:14.5px}
+.small{font-size:13px;color:var(--mute);font-style:italic}
+
+.check{display:flex;align-items:center;justify-content:space-between;margin-top:26px;font-family:var(--mono);font-size:12px;color:var(--soft)}
+.check label{display:flex;gap:10px;align-items:center;cursor:pointer}
+.check input{width:18px;height:18px;accent-color:#c9a800}
+.smile{width:30px;height:30px;border-radius:50%;background:var(--yellow);display:grid;place-items:center;font-size:18px;transform:scale(.6);opacity:.35;transition:.4s cubic-bezier(.3,1.8,.5,1)}
+.page.ok .smile{transform:scale(1.15) rotate(-10deg);opacity:1}
+
+.timer{display:flex;align-items:center;gap:12px;margin:8px 0 4px;font-family:var(--mono);font-size:13px}
+.btn{font-family:var(--mono);font-size:12px;letter-spacing:.04em;border:0;border-radius:4px;padding:9px 14px;background:var(--ink);color:#fff;cursor:pointer}
+.btn.y{background:var(--yellow);color:#222}
+.btn:disabled{opacity:.4;cursor:default}
+.timer .t{font-size:22px;font-weight:500;min-width:62px}
+
+.cta{display:block;background:#6b6b6b;color:#fff;text-decoration:none;padding:18px 20px;border-radius:4px;margin:30px 0;transition:background .2s}
+.cta:hover{background:#555}
+.cta b{color:var(--yellow);font-size:15px;letter-spacing:.04em}
+.cta span{display:block;font-family:var(--mono);font-size:11px;margin-top:6px}
+
+.sticker{position:absolute;right:48px;top:110px;text-align:center;transform:rotate(4deg)}
+.sticker small{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--soft)}
+.sticker div{font-family:var(--hand);font-size:34px;line-height:1;margin-top:4px}
+
+canvas#draw{width:100%;height:220px;background:#fff;border:1.5px dashed var(--line);border-radius:6px;touch-action:none;cursor:crosshair;display:block}
+.drawbar{display:flex;gap:8px;margin-top:8px}
+
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin:34px 0 26px}
+.links{display:flex;gap:24px;align-items:center;flex-wrap:wrap;margin-top:26px;font-family:var(--mono);font-size:12px}
+.links a{color:var(--ink)}
+.links a.ig{background:var(--yellow);padding:8px 14px;text-decoration:none}
+audio{width:100%;margin-top:8px}
+
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .7s,transform .7s}
+.reveal.in{opacity:1;transform:none}
+
+@media (max-width:600px){
+  .page{padding:32px 18px 60px 44px}
+  .page::before{left:8px}.page::after{left:30px}
+  .foot{left:44px;right:18px}
+  .head img{height:34px}
+  .float{float:none;width:80%;margin:10px auto 22px}
+  .sticker{position:static;margin:0 0 10px;text-align:left}
+  .g2,.g3,.duo{grid-template-columns:1fr}
+}
+@media print{
+  body{background:#fff}.top,.btn,.drawbar{display:none}
+  .page{box-shadow:none;break-after:page}.reveal{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <span id="prog">0 / 5 experimentos</span>
+  <div class="bar"><i id="bar"></i></div>
+  <a class="dl" href="sal-del-automatico.pdf" download="Sal del automático - Vida Fitness.pdf">⬇ Descargar PDF</a>
+  <button onclick="window.print()">Imprimir</button>
+</div>
+
+<main class="book">
+
+<!-- 01 PORTADA -->
+<section class="page reveal">
+  <div class="head"><img src="img/logo.png" alt="Vida Fitness"><div class="tag">ARCHIVO PERSONAL<br>SAL DEL AUTOMÁTICO</div></div>
+  <span class="label">RETO GRATUITO / 5 DÍAS</span>
+  <h1><span class="hl">SAL DEL</span><br>AUTOMÁTICO</h1>
+  <p class="hand" style="margin:18px 0 30px">5 días, 5 experimentos contigo.</p>
+  <figure class="polaroid" style="--r:2deg;margin:0 0 30px">
+    <img src="img/portada.jpg" alt="Gal·la y Jose haciendo plancha">
+    <figcaption>Gal·la + Jose / Espai Vida Fitness</figcaption>
+  </figure>
+  <a class="cta" href="sal-del-automatico.pdf" download="Sal del automático - Vida Fitness.pdf" style="margin:0 0 26px"><b>⬇ DESCARGAR EL CUADERNO EN PDF</b><span>Para imprimirlo y rellenarlo a mano.</span></a>
+  <p class="hand" style="margin:0">Este cuaderno es de…</p>
+  <div class="field"><label>NOMBRE O APODO. TÚ ELIGES.</label><input data-k="nombre" autocomplete="off"></div>
+  <div class="foot"><span>VIDA FITNESS / CUADERNO DE EXPERIMENTOS</span><span>01</span></div>
+</section>
+
+<!-- 02 MANIFIESTO -->
+<section class="page reveal">
+  <div class="head"><img src="img/logo.png" alt=""><div class="tag">ARCHIVO PERSONAL<br>SAL DEL AUTOMÁTICO</div></div>
+  <span class="label">PRIMERA PARADA</span>
+  <figure class="polaroid float" style="--r:-3deg"><img src="img/manifiesto.jpg" alt="Entrenando"><figcaption>Así nos gusta movernos.</figcaption></figure>
+  <h2>Manifiesto</h2>
+  <p class="hand" style="font-size:42px;margin:6px 0 20px">Vida Fitness</p>
+  <p class="serif" style="font-size:22px;margin:0 0 10px">Antes de empezar,<br>conócenos.</p>
+  <p>Te invitamos a ver nuestro manifiesto y descubrir la mirada de Vida Fitness.</p>
+  <a class="cta" style="clear:both" href="https://www.youtube.com/watch?v=s0EoqyUzCZI&t=1s" target="_blank" rel="noopener"><b>▶ VER EL MANIFIESTO</b><span>Pulsa aquí. El vídeo se abre en YouTube.</span></a>
+  <p class="hand" style="margin:40px 0 0">Ahora sí. Vamos contigo. ↓</p>
+  <div class="foot"><span>VIDA FITNESS / CUADERNO DE EXPERIMENTOS</span><span>02</span></div>
+</section>
+
+<!-- 03 INSTRUCCIONES -->
+<section class="page reveal">
+  <div class="head"><img src="img/logo.png" alt=""><div class="tag">ARCHIVO PERSONAL<br>SAL DEL AUTOMÁTICO</div></div>
+  <span class="label">INSTRUCCIONES POCO COMPLICADAS</span>
+  <h2>Ven con <span class="hand" style="font-size:1.2em">curiosidad.</span></h2>
+  <p>Aquí puedes tachar, hacer un garabato y cambiar de idea. No hay respuestas de diez: hay respuestas tuyas.</p>
+  <ol class="steps" style="counter-reset:none" id="index"></ol>
+  <div class="note"><b>TU KIT DE EXPLORACIÓN</b><p>Un experimento al día. De 3 a 10 minutos, objetos de casa, papel, bolígrafo y móvil. Escribe aquí: se guarda solo en tu dispositivo. Tus fotos y audios son privados.</p></div>
+  <p class="small">Adapta el movimiento a tu comodidad. Usa alimentos que puedas consumir. Respira a tu ritmo y para si aparece malestar.</p>
+  <div class="foot"><span>VIDA FITNESS / CUADERNO DE EXPERIMENTOS</span><span>03</span></div>
+</section>
+
+<!-- EXP 1 -->
+<section class="page reveal exp" id="e1" data-min="6">
+  <div class="head"><img src="img/logo.png" alt=""><div class="tag">ARCHIVO PERSONAL<br>SAL DEL AUTOMÁTICO</div></div>
+  <span class="label">EXPERIMENTO / 01</span>
+  <figure class="polaroid float" style="--r:-4deg;width:min(36%,200px)"><img src="img/exp1.jpg" alt=""><figcaption>¡En marcha!</figcaption></figure>
+  <h2>Tu casa esconde<br>un entrenamiento</h2>
+  <p class="serif" style="margin:10px 0 0">Tres gestos cotidianos. Una sesión que sí cabe.</p>
+  <div class="meta" style="clear:both">6 MINUTOS · SILLA ESTABLE · MOCHILA LIGERA</div>
+  <div class="timer"></div>
+  <p>Sentarte, levantar una carga y llevarla de un sitio a otro: ya lo haces en tu día. Hoy vas a convertirlo en una pequeña sesión de fuerza.</p>
+  <ol class="steps">
+    <li>Prepara tu material: coloca una silla sin ruedas contra la pared. Cierra una mochila con una carga ligera y fácil de manejar, como una toalla.</li>
+    <li>Prueba una vuelta: siéntate y levántate 5 veces; de pie, sujeta la mochila con ambas manos y acércala al pecho 5 veces; después camina con ella cerca del cuerpo durante 20 segundos.</li>
+    <li>Repite a tu ritmo durante 4 minutos. Descansa cuando lo necesites. Puedes usar las manos al levantarte y hacer los movimientos sin mochila. No busques cansarte al máximo.</li>
+  </ol>
+  <div class="note"><b>TRUCO PARA TU YO DE MAÑANA</b><p>Al terminar, deja preparada tu mochila junto a la silla: tu próxima sesión ya tiene lugar y material. Adapta los movimientos a tu comodidad y para si aparece dolor o malestar.</p></div>
+  <div class="field"><label>MI HUECO PARA REPETIRLO</label><input data-k="e1a"></div>
+  <div class="field"><label>¿QUÉ GESTO QUIERO HACER CON MÁS FACILIDAD?</label><textarea data-k="e1b"></textarea></div>
+  <div class="check"><label><input type="checkbox" data-k="e1ok"> ¡Probado! Lo que he descubierto hoy cuenta.</label><span class="smile">☺</span></div>
+  <div class="foot"><span>VIDA FITNESS / CUADERNO DE EXPERIMENTOS</span><span>04</span></div>
+</section>
+
+<!-- EXP 2 -->
+<section class="page reveal exp" id="e2" data-min="10">
+  <div class="head"><img src="img/logo.png" alt=""><div class="tag">ARCHIVO PERSONAL<br>SAL DEL AUTOMÁTICO</div></div>
+  <span class="label">EXPERIMENTO / 02</span>
+  <div class="sticker"><small>NOTA PARA TI</small><div>Cero<br>prisas.</div></div>
+  <h2>Rescate<br>de nevera</h2>
+  <p class="serif" style="margin:10px 0 0">Antes de comprar más, descubre qué puedes resolver.</p>
+  <div class="meta">10 MINUTOS · TU NEVERA · UNA NOTA EN EL MÓVIL</div>
+  <div class="timer"></div>
+  <p>Hoy el reto es resolver una comida con alimentos que ya tienes. Vas a dejarle una decisión menos pendiente a tu yo de mañana.</p>
+  <ol class="steps">
+    <li>Encuentra un alimento que convenga utilizar pronto. Revisa nevera, despensa o congelador. Usa solo alimentos en buen estado y respeta sus condiciones de conservación.</li>
+    <li>Búscale dos aliados: una fuente de proteína y una verdura, o una base como pan, arroz o patata, según lo que ya hayas elegido. Adáptalo a lo que puedes comer.</li>
+    <li>Decide cómo lo combinarás. No hace falta cocinar ahora. Escribe qué vas a preparar, para qué comida y si necesitas descongelar o dejar algo listo con antelación.</li>
+  </ol>
+  <div class="note"><b>UNA IDEA PARA ARRANCAR</b><p>Tienes un calabacín que conviene usar: lo combinas con huevo y pan para preparar mañana un revuelto. Si falta algún ingrediente, busca primero una alternativa que ya tengas.</p></div>
+  <div class="field"><label>MI COMIDA RESCATADA</label><textarea data-k="e2a"></textarea></div>
+  <div class="grid g2"><div class="field"><label>¿PARA CUÁNDO?</label><input data-k="e2b"></div><div class="field"><label>¿QUÉ DEJO PREVISTO?</label><input data-k="e2c"></div></div>
+  <div class="check"><label><input type="checkbox" data-k="e2ok"> ¡Probado! Lo que he descubierto hoy cuenta.</label><span class="smile">☺</span></div>
+  <div class="foot"><span>VIDA FITNESS / CUADERNO DE EXPERIMENTOS</span><span>05</span></div>
+</section>
+
+<!-- EXP 3 -->
+<section class="page reveal exp" id="e3" data-min="3">
+  <div class="head"><img src="img/logo.png" alt=""><div class="tag">ARCHIVO PERSONAL<br>SAL DEL AUTOMÁTICO</div></div>
+  <span class="label">EXPERIMENTO / 03</span>
+  <figure class="polaroid float" style="--r:3deg;width:min(36%,200px)"><img src="img/exp3.jpg" alt=""><figcaption>A tu ritmo</figcaption></figure>
+  <h2>Dibuja tu<br>respiración</h2>
+  <p class="serif" style="margin:10px 0 0">Un paisaje que solo puedes dibujar tú.</p>
+  <div class="meta" style="clear:both">3 MINUTOS · PAPEL Y BOLÍGRAFO (O TU DEDO)</div>
+  <div class="timer"></div>
+  <ol class="steps">
+    <li>Apoya el papel y ponte cómodo. Mantén los ojos abiertos. Deja que tu respiración siga su ritmo habitual.</li>
+    <li>Dibuja durante un minuto: cuando notes que entra el aire, lleva la línea hacia arriba; cuando sale, hacia abajo. Avanza por el papel como si dibujaras colinas.</li>
+    <li>Observa el resultado y ponle un título. No hay una forma ideal. No interpretes el dibujo como una prueba de salud.</li>
+  </ol>
+  <div class="note"><b>SI TE RESULTA INCÓMODO</b><p>No cambies, profundices ni retengas la respiración. Si observarla te incomoda, dibuja una línea siguiendo los sonidos que escuchas.</p></div>
+  <div class="field" style="border:0;padding:0;background:none"><label>TU PAISAJE. AQUÍ CABEN TODAS LAS MONTAÑAS.</label>
+    <canvas id="draw"></canvas>
+    <div class="drawbar"><button class="btn" id="clear">Borrar</button></div>
+  </div>
+  <div class="field"><label>YO A ESTE DIBUJO LO LLAMO…</label><input data-k="e3a"></div>
+  <div class="check"><label><input type="checkbox" data-k="e3ok"> ¡Probado! Lo que he descubierto hoy cuenta.</label><span class="smile">☺</span></div>
+  <div class="foot"><span>VIDA FITNESS / CUADERNO DE EXPERIMENTOS</span><span>06</span></div>
+</section>
+
+<!-- EXP 4 -->
+<section class="page reveal exp" id="e4" data-min="7">
+  <div class="head"><img src="img/logo.png" alt=""><div class="tag">ARCHIVO PERSONAL<br>SAL DEL AUTOMÁTICO</div></div>
+  <span class="label">EXPERIMENTO / 04</span>
+  <figure class="polaroid float" style="--r:-3deg;width:min(36%,200px)"><img src="img/exp4.jpg" alt=""><figcaption>Tu mirada</figcaption></figure>
+  <h2>Tu museo<br>de hoy</h2>
+  <p class="serif" style="margin:10px 0 0">Tres objetos. Una pequeña historia sobre ti.</p>
+  <div class="meta" style="clear:both">7 MINUTOS · OBJETOS QUE YA TENGAS CERCA</div>
+  <div class="timer"></div>
+  <ol class="steps">
+    <li>Mira a tu alrededor. Elige tres objetos que representen cómo estás hoy. No busques objetos especiales: una taza, una llave o una prenda también pueden contar algo.</li>
+    <li>Crea tu exposición. Colócalos juntos, si puedes moverlos. Si estás al aire libre, obsérvalos sin recoger ni alterar nada. La foto es opcional.</li>
+    <li>Ponle título. Después escribe por qué has elegido cada objeto. No tienes que enseñar tu exposición a nadie.</li>
+  </ol>
+  <div class="note"><b>UNA IDEA PARA ARRANCAR</b><p>Una taza vacía, unas llaves y una manta. Título: «De un lado a otro, buscando una pausa». Lo importante es lo que significan para ti.</p></div>
+  <div class="grid g3"><div class="field"><label>OBJETO 1</label><textarea data-k="e4a"></textarea></div><div class="field"><label>OBJETO 2</label><textarea data-k="e4b"></textarea></div><div class="field"><label>OBJETO 3</label><textarea data-k="e4c"></textarea></div></div>
+  <div class="field"><label>MI EXPOSICIÓN SE TITULA…</label><input data-k="e4d"></div>
+  <div class="check"><label><input type="checkbox" data-k="e4ok"> ¡Probado! Lo que he descubierto hoy cuenta.</label><span class="smile">☺</span></div>
+  <div class="foot"><span>VIDA FITNESS / CUADERNO DE EXPERIMENTOS</span><span>07</span></div>
+</section>
+
+<!-- EXP 5 -->
+<section class="page reveal exp" id="e5" data-min="5">
+  <div class="head"><img src="img/logo.png" alt=""><div class="tag">ARCHIVO PERSONAL<br>SAL DEL AUTOMÁTICO</div></div>
+  <span class="label">EXPERIMENTO / 05</span>
+  <div class="sticker"><small>NOTA PARA TI</small><div>Háblate<br>bien.</div></div>
+  <h2>Cámbiate<br>el mensaje</h2>
+  <p class="serif" style="margin:10px 0 0">Tu voz también puede acompañarte.</p>
+  <div class="meta">5 MINUTOS · GRABADORA DEL MÓVIL O PAPEL</div>
+  <ol class="steps">
+    <li>Elige una frase cotidiana y leve que te dices cuando algo no sale como esperabas. Por ejemplo: «Ya he vuelto a dejarlo a medias».</li>
+    <li>Imagina que te lo dice alguien a quien quieres. ¿Qué le responderías con respeto, sin quitarle importancia a lo que siente?</li>
+    <li>Grábate respondiendo durante 30 segundos. Escucha el audio y guarda una frase que te gustaría recordar. Si no quieres grabarte, escribe tu respuesta.</li>
+  </ol>
+  <div class="note"><b>UNA IDEA PARA ARRANCAR</b><p>«Hoy no te ha salido como querías. Puedes ajustar lo que te habías propuesto y volver a probar. Un día no cuenta toda la historia».</p></div>
+  <div class="timer"><button class="btn y" id="rec">● Grabar 30 s</button><span class="t" id="rect"></span></div>
+  <audio id="play" controls hidden></audio>
+  <div class="field"><label>ANTES ME DECÍA…</label><textarea data-k="e5a"></textarea></div>
+  <div class="field"><label>AHORA QUIERO RECORDARME…</label><textarea data-k="e5b"></textarea></div>
+  <p class="small">Tu audio es privado: no sale de tu dispositivo. Elige una situación sencilla y salta el ejercicio si te remueve.</p>
+  <div class="check"><label><input type="checkbox" data-k="e5ok"> ¡Probado! Lo que he descubierto hoy cuenta.</label><span class="smile">☺</span></div>
+  <div class="foot"><span>VIDA FITNESS / CUADERNO DE EXPERIMENTOS</span><span>08</span></div>
+</section>
+
+<!-- CIERRE -->
+<section class="page reveal">
+  <div class="head"><img src="img/logo.png" alt=""><div class="tag">ARCHIVO PERSONAL<br>SAL DEL AUTOMÁTICO</div></div>
+  <span class="label">CIERRA EL CUADERNO. QUÉDATE CON ALGO.</span>
+  <h2>¿Y tú, qué te llevas?</h2>
+  <p>Puede ser una idea, una sorpresa o algo que te apetezca repetir. No hace falta una gran conclusión.</p>
+  <div class="field"><label>EL EXPERIMENTO QUE MÁS ME HA SORPRENDIDO…</label><textarea data-k="c1"></textarea></div>
+  <div class="field"><label>HE DESCUBIERTO QUE…</label><textarea data-k="c2"></textarea></div>
+  <div class="field"><label>ME GUSTARÍA VOLVER A PROBAR…</label><textarea data-k="c3"></textarea></div>
+  <p class="hand" style="margin:30px 0 4px">Una última cosa…</p>
+  <p>Si quieres compartir tu descubrimiento, escríbenos <b>EXPERIMENTO</b> por Instagram a <a href="https://www.instagram.com/vida.fitness017/" target="_blank" rel="noopener" style="color:var(--ink)">@vida.fitness017</a>. Nos encantará leerte y orientarte si quieres empezar con nosotros.</p>
+  <a class="cta" href="https://ig.me/m/vida.fitness017" target="_blank" rel="noopener"><b>ESCRIBIR «EXPERIMENTO»</b><span>Abre un mensaje directo en Instagram.</span></a>
+  <div class="foot"><span>VIDA FITNESS / CUADERNO DE EXPERIMENTOS</span><span>09</span></div>
+</section>
+
+<!-- EQUIPO -->
+<section class="page reveal">
+  <div class="head"><img src="img/logo.png" alt=""><div class="tag">ARCHIVO PERSONAL<br>SAL DEL AUTOMÁTICO</div></div>
+  <span class="label">EL SIGUIENTE PASO PUEDE SER EN COMPAÑÍA</span>
+  <h2>Nos vemos en</h2>
+  <p class="hand" style="font-size:52px;margin:0 0 0 30%">Espai Vida.</p>
+  <div class="duo">
+    <figure class="polaroid" style="--r:-3deg;margin:0"><img src="img/jose.jpg" alt="Jose"><figcaption>Jose / contigo en el camino</figcaption></figure>
+    <figure class="polaroid" style="--r:3deg;margin:0"><img src="img/galla.jpg" alt="Gal·la"><figcaption>Gal·la / vamos a probar</figcaption></figure>
+  </div>
+  <p class="hand" style="margin:10px 0 0">Movimiento, naturaleza y personas.</p>
+  <p>Nos gusta que cuidarte también tenga espacio para jugar, explorar y compartir. Gracias por dejarnos acompañarte estos cinco días.</p>
+  <div class="links"><a class="ig" href="https://www.instagram.com/vida.fitness017/" target="_blank" rel="noopener">@vida.fitness017</a><a href="https://www.espaividafitness.com" target="_blank" rel="noopener">www.espaividafitness.com</a><a href="sal-del-automatico.pdf" download="Sal del automático - Vida Fitness.pdf">⬇ Descargar PDF</a></div>
+  <div class="foot"><span>VIDA FITNESS / CUADERNO DE EXPERIMENTOS</span><span>10</span></div>
+</section>
+
+</main>
+
+<script>
+const KEY='vf-sal-del-automatico';
+let S={};try{S=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+
+// índice de experimentos
+const titles=[['Tu casa esconde un entrenamiento','Una silla, una mochila y un hueco para ti.'],['Rescate de nevera','Una comida resuelta con lo que ya tienes.'],['Dibuja tu respiración','Tu ritmo convertido en una línea.'],['Tu museo de hoy','Tres objetos para contar cómo estás.'],['Cámbiate el mensaje','Tu voz también puede acompañarte.']];
+document.getElementById('index').innerHTML=titles.map((t,i)=>`<li onclick="location.hash='e${i+1}'" data-i="${i+1}"><span><b style="color:var(--ink)">0${i+1} · ${t[0]}</b><br>${t[1]}</span></li>`).join('');
+
+// campos + checks
+document.querySelectorAll('[data-k]').forEach(el=>{
+  const k=el.dataset.k;
+  if(el.type==='checkbox'){el.checked=!!S[k];el.onchange=()=>{S[k]=el.checked;save();sync()}}
+  else{el.value=S[k]||'';el.oninput=()=>{S[k]=el.value;save()}}
+});
+// tachar pasos
+document.querySelectorAll('.exp ol.steps li').forEach((li,i)=>{
+  const k='step'+i;if(S[k])li.classList.add('done');
+  li.onclick=()=>{li.classList.toggle('done');S[k]=li.classList.contains('done');save()};
+});
+function sync(){
+  let n=0;
+  for(let i=1;i<=5;i++){const ok=!!S['e'+i+'ok'];n+=ok;document.getElementById('e'+i).classList.toggle('ok',ok);
+    const li=document.querySelector('#index li[data-i="'+i+'"]');li.classList.toggle('done',ok)}
+  document.getElementById('bar').style.width=n*20+'%';
+  document.getElementById('prog').textContent=n+' / 5 experimentos'+(n===5?' · ¡Hecho!':'');
+}
+sync();
+
+// temporizadores
+const fmt=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+document.querySelectorAll('.exp').forEach(sec=>{
+  const box=sec.querySelector('.timer');if(!box||box.children.length)return;
+  const total=sec.dataset.min*60;let left=total,iv=null;
+  box.innerHTML=`<button class="btn y">▶ Empezar</button><span class="t">${fmt(total)}</span><button class="btn">Reiniciar</button>`;
+  const [b,t,r]=box.children;
+  b.onclick=()=>{if(iv){clearInterval(iv);iv=null;b.textContent='▶ Seguir';return}
+    b.textContent='❚❚ Pausa';iv=setInterval(()=>{left--;t.textContent=fmt(left);if(left<=0){clearInterval(iv);iv=null;t.textContent='¡Hecho!';b.textContent='▶ Empezar';left=total}},1000)};
+  r.onclick=()=>{clearInterval(iv);iv=null;left=total;t.textContent=fmt(total);b.textContent='▶ Empezar'};
+});
+
+// lienzo de respiración
+const cv=document.getElementById('draw'),cx=cv.getContext('2d');
+function sizeCanvas(){const r=cv.getBoundingClientRect(),d=devicePixelRatio||1;cv.width=r.width*d;cv.height=r.height*d;cx.scale(d,d);cx.lineWidth=2.5;cx.lineCap=cx.lineJoin='round';cx.strokeStyle='#3d3d3d';
+  if(S.draw){const im=new Image();im.onload=()=>cx.drawImage(im,0,0,r.width,r.height);im.src=S.draw}}
+sizeCanvas();
+let drawing=false;
+const pos=e=>{const r=cv.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
+cv.onpointerdown=e=>{drawing=true;cv.setPointerCapture(e.pointerId);cx.beginPath();cx.moveTo(...pos(e))};
+cv.onpointermove=e=>{if(!drawing)return;cx.lineTo(...pos(e));cx.stroke()};
+cv.onpointerup=cv.onpointercancel=()=>{if(!drawing)return;drawing=false;S.draw=cv.toDataURL();save()};
+document.getElementById('clear').onclick=()=>{cx.clearRect(0,0,cv.width,cv.height);delete S.draw;save()};
+
+// grabadora
+const rec=document.getElementById('rec'),rect=document.getElementById('rect'),play=document.getElementById('play');
+let mr=null;
+rec.onclick=async()=>{
+  if(mr&&mr.state==='recording'){mr.stop();return}
+  try{
+    const st=await navigator.mediaDevices.getUserMedia({audio:true});const chunks=[];
+    mr=new MediaRecorder(st);mr.ondataavailable=e=>chunks.push(e.data);
+    let s=30;rect.textContent=fmt(s);const iv=setInterval(()=>{s--;rect.textContent=fmt(s);if(s<=0)mr.stop()},1000);
+    mr.onstop=()=>{clearInterval(iv);st.getTracks().forEach(t=>t.stop());play.src=URL.createObjectURL(new Blob(chunks,{type:mr.mimeType}));play.hidden=false;rec.textContent='● Volver a grabar';rect.textContent='Escúchate'};
+    mr.start();rec.textContent='■ Parar';
+  }catch(e){rect.textContent='Sin micro: escribe tu respuesta abajo.'}
+};
+
+// aparición al hacer scroll
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.08});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>
